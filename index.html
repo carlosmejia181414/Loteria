@@ -182,8 +182,10 @@ let G=GAMES.max,ALL=[],TOTAL=0,REF=null,HIST=[],LAST=[],SEL=new Set(),cur='anti'
 const $=s=>document.querySelector(s);
 const C=(n,k)=>{if(k<0||k>n)return 0;let r=1;for(let i=1;i<=k;i++)r=r*(n-k+i)/i;return r;};
 const fmt=x=>Math.round(x).toLocaleString('es');
-function rint(n){const a=new Uint32Array(1);const lim=Math.floor(4294967296/n)*n;let x;do{crypto.getRandomValues(a);x=a[0]}while(x>=lim);return x%n;}
-function sample(pool,k){const p=[...pool];for(let i=p.length-1;i>0;i--){const j=rint(i+1);[p[i],p[j]]=[p[j],p[i]];}return p.slice(0,k).sort((a,b)=>a-b);}
+const RBUF=new Uint32Array(16384);let RPOS=RBUF.length;
+function r32(){if(RPOS>=RBUF.length){try{crypto.getRandomValues(RBUF)}catch(e){for(let i=0;i<RBUF.length;i++)RBUF[i]=Math.floor(Math.random()*4294967296)}RPOS=0;}return RBUF[RPOS++];}
+function rint(n){const lim=Math.floor(4294967296/n)*n;let x;do{x=r32()}while(x>=lim);return x%n;}
+function sample(pool,k){const p=pool.slice();const n=p.length;for(let i=0;i<k;i++){const j=i+rint(n-i);const t=p[i];p[i]=p[j];p[j]=t;}return p.slice(0,k).sort((a,b)=>a-b);}
 function weighted(w,k){const ww=[...w],out=[];for(let t=0;t<k;t++){let s=ww.reduce((a,b)=>a+b,0),r=Math.random()*s,i=0;for(;i<ww.length;i++){r-=ww[i];if(r<=0)break;}i=Math.min(i,ww.length-1);if(!ww[i]){i=ww.findIndex(v=>v>0);}out.push(i+1);ww[i]=0;}return out.sort((a,b)=>a-b);}
 const sig=z=>1/(1+Math.exp(-z));const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0);
 function normCdf(z){const t=1/(1+0.2316419*Math.abs(z));const d=0.3989423*Math.exp(-z*z/2);let p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-p:p;}
